@@ -116,7 +116,8 @@ setmetatable(CardType, dataMT)
 setmetatable(CardRace, dataMT)
 
 
-local SLAXML = require("slaxdom")
+package.path = package.path..";SLAXML/?.lua"
+local SLAXML = require("SLAXML.slaxdom")
 
 local lang = "enUS"
 local cards = {}
@@ -126,7 +127,7 @@ local cardsDict = {}
 local tonumber = tonumber
 
 -- Read XML document
-local myxml = io.open('CardDefs.xml'):read('*all')
+local myxml = io.open("hs-data/CardDefs.xml"):read('*all')
 local doc = SLAXML:dom(myxml)
 
 local tagIDsToRead1 =
