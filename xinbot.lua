@@ -212,6 +212,8 @@ for _, tEntity in pairs(doc.root.kids) do
 			else
 				cardsDict[lowerCardName] = { newCard }
 			end
+			-- Allow cardID exact lookup too
+			cardsDict[newCard.CardID:lower()] = { newCard }
 		end
 	end
 end
