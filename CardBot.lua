@@ -122,6 +122,8 @@ local SLAXML = require("SLAXML.slaxdom")
 local lang = "enUS"
 local cards = {}
 local cardsDict = {}
+local buffs = {}
+local buffsDict = {}
 
 -- Localize globals
 local tonumber = tonumber
@@ -177,32 +179,44 @@ for _, tEntity in pairs(doc.root.kids) do
 			end
 		end
 
-		-- Skip Enchantments
-		if newCard.CardType ~= 6 then
-			-- Process text
-			if newCard.CardTextInHand then
-				newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?b>", "")
-				newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?i>", "")
-				newCard.CardTextInHand = newCard.CardTextInHand:gsub("%$(%d+)", "%1")
-				newCard.CardTextInHand = newCard.CardTextInHand:gsub("\n", " ")
-			else
-				newCard.CardTextInHand = ""
-			end
-			-- Process flavor text
-			if newCard.FlavorText then
-				newCard.FlavorText = newCard.FlavorText:gsub("</?b>", "")
-				newCard.FlavorText = newCard.FlavorText:gsub("</?i>", "")
-				newCard.FlavorText = newCard.FlavorText:gsub("%$(%d+)", "%1")
-				newCard.FlavorText = newCard.FlavorText:gsub("\n", " ")
-			end
-			-- Store lowercase name
-			local lowerCardName = newCard.CardName:lower()
-			newCard.CardNameLower = lowerCardName
-			-- Parse Collectible
-			newCard.Collectible = newCard.Collectible == 1
-			-- Parse Cost
-			if not newCard.Cost then newCard.Cost = 0 end
+		-- Process text
+		if newCard.CardTextInHand then
+			newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?b>", "")
+			newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?i>", "")
+			newCard.CardTextInHand = newCard.CardTextInHand:gsub("%$(%d+)", "%1")
+			newCard.CardTextInHand = newCard.CardTextInHand:gsub("\n", " ")
+		else
+			newCard.CardTextInHand = ""
+		end
+		-- Process flavor text
+		if newCard.FlavorText then
+			newCard.FlavorText = newCard.FlavorText:gsub("</?b>", "")
+			newCard.FlavorText = newCard.FlavorText:gsub("</?i>", "")
+			newCard.FlavorText = newCard.FlavorText:gsub("%$(%d+)", "%1")
+			newCard.FlavorText = newCard.FlavorText:gsub("\n", " ")
+		end
+		-- Store lowercase name
+		local lowerCardName = newCard.CardName:lower()
+		newCard.CardNameLower = lowerCardName
+		-- Parse Collectible
+		newCard.Collectible = newCard.Collectible == 1
+		-- Parse Cost
+		if not newCard.Cost then newCard.Cost = 0 end
 
+		-- Separate Enchantment cards from the others
+		if newCard.CardType == 6 then
+			-- Store in buffs[]
+			buffs[#buffs + 1] = newCard
+			-- Store in buffsDict[]
+			if buffsDict[lowerCardName] then
+				local size = #buffsDict[lowerCardName]
+				buffsDict[lowerCardName][size + 1] = newCard
+			else
+				buffsDict[lowerCardName] = { newCard }
+			end
+			-- Allow cardID exact lookup too
+			buffsDict[newCard.CardID:lower()] = { newCard }
+		else
 			-- Store in cards[]
 			cards[#cards + 1] = newCard
 			-- Store in cardsDict[]
@@ -272,7 +286,7 @@ local function GetCardText(c)
 	return ("%s [%s] Unrecognized CardType: %s"):format(cardName, c.CardID, CardType[c.CardType])
 end
 
-local function FindCard(text)
+local function FindCard(text, cards, cardsDict)
 	-- Try exact match first
 	if cardsDict[lowerargs] then
 		return cardsDict[lowerargs]
@@ -346,7 +360,7 @@ local function TryCardCommand(command, outputTarget)
 		args = trim(args)
 		lowerargs = args:lower()
 
-		local retOK, cards = pcall(FindCard, lowerargs)
+		local retOK, cards = pcall(FindCard, lowerargs, cards, cardsDict)
 		if retOK then
 			if cards then
 				if index > #cards then index = #cards end
@@ -370,7 +384,53 @@ local function TryCardCommand(command, outputTarget)
 		else
 			OutputText("Some error occured: "..(cards or ""), outputTarget)
 		end
+		return true
 	end
+
+	return false
+end
+
+local function TryBuffCommand(command, outputTarget)
+	local start, _, index, args = command:find("!buff(%d*) (.*)")
+	if index and args and start == 1 then
+		local showCount = false
+		if index == "" then
+			index = 1
+		else
+			index = tonumber(index)
+			showCount = true
+		end
+		args = trim(args)
+		lowerargs = args:lower()
+
+		local retOK, cards = pcall(FindCard, lowerargs, buffs, buffsDict)
+		if retOK then
+			if cards then
+				if index > #cards then index = #cards end
+				if index < 1 then index = 1 end
+				if #cards > 1 then showCount = true end
+
+				local countText = "("..index.."/"..#cards..") "
+				local retOK2, cardText = pcall(GetCardText, cards[index])
+				if retOK2 then
+					if showCount then
+						OutputText(countText..cardText, outputTarget)
+					else
+						OutputText(cardText, outputTarget)
+					end
+				else
+					OutputText("Some error occured: "..(cardText or ""), outputTarget)
+				end
+			else
+				OutputText("No buff found for \""..args.."\".", outputTarget)
+			end
+		else
+			OutputText("Some error occured: "..(cards or ""), outputTarget)
+		end
+		return true
+	end
+
+	return false
 end
 
 -------------------------------------------------------------------------------------------
@@ -550,7 +610,10 @@ local function on_channel_msg(chan, from, msg)
 	]]
 
 	if chan.name == "#hearthsim" then
-		TryCardCommand(msg, chan.name)
+		local foundCommand = TryCardCommand(msg, chan.name)
+		if not foundCommand then
+			foundCommand = TryBuffCommand(msg, chan.name)
+		end
 	end
 end
 irc.register_callback("channel_msg", on_channel_msg)
@@ -571,7 +634,10 @@ local function on_private_msg(from, msg)
 	end
 	]]
 
-	TryCardCommand(msg, from)
+	local foundCommand = TryCardCommand(msg, from)
+	if not foundCommand then
+		foundCommand = TryBuffCommand(msg, from)
+	end
 end
 irc.register_callback("private_msg", on_private_msg)
 
@@ -650,4 +716,10 @@ irc.connect({ network = "irc.freenode.net", nick = "CardBot" })
 --TryCardCommand("!card chillwind")
 TryCardCommand("!card spellbender")
 TryCardCommand("!card2 spellbender")
+]]
+--[[
+TryBuffCommand("!buff humility")
+TryBuffCommand("!buff buff")
+TryBuffCommand("!buff2 buff")
+TryBuffCommand("!buff GVG_104a")
 ]]
