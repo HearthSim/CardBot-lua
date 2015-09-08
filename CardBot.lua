@@ -609,7 +609,7 @@ local function on_channel_msg(chan, from, msg)
 	end
 	]]
 
-	if chan.name == "#hearthsim" then
+	if chan.name:lower() == "#hearthsim" then
 		local foundCommand = TryCardCommand(msg, chan.name)
 		if not foundCommand then
 			foundCommand = TryBuffCommand(msg, chan.name)
