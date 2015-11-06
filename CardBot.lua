@@ -695,7 +695,12 @@ end
 -------------------------------------------------------------------------------------------
 
 -- Connect to IRC
-irc.connect({ network = "irc.freenode.net", nick = "CardBot" })
+irc.connect({
+	network = "irc.freenode.net",
+	nick = "CardBot",
+	username = "CardBot",
+	realname = "CardBot",
+})
 
 
 --[[
