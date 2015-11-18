@@ -106,6 +106,25 @@ local CardRace =
 	[23] = "Pirate",
 	[24] = "Dragon",
 }
+
+local Locale = {
+	[0] = "enUS",
+	[1] = "enGB",
+	[2] = "frFR",
+	[3] = "deDE",
+	[4] = "koKR",
+	[5] = "esES",
+	[6] = "esMX",
+	[7] = "ruRU",
+	[8] = "zhTW",
+	[9] = "zhCN",
+	[10] = "itIT",
+	[11] = "ptBR",
+	[12] = "plPL",
+	[13] = "ptPT",
+	[14] = "jaJP",
+}
+
 local dataMT =
 {
 	__index = function(t, key) return t[0] end,
