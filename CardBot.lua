@@ -39,6 +39,7 @@ local CardSet =
 	[16] = "Credits",
 	[17] = "Hero Skins",
 	[18] = "Tavern Brawl",
+	[20] = "LOE",
 }
 local CardType =
 {
