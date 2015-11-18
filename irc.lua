@@ -50,6 +50,8 @@ local ctcp_handlers = {}
 local user_handlers = {}
 local serverinfo = {}
 local ip = nil
+
+local reconnect_on_disconnect = false
 -- }}}
 
 -- defaults {{{
@@ -127,7 +129,11 @@ local function begin_main_loop()
 			TEMPtimerCallbacks[chan] = nil
 		end
 	end
-	return connect() -- Reconnect after disconnect forever
+	if reconnect_on_disconnect then
+		return connect() -- Reconnect after disconnect forever
+	else
+		return os.exit(1)
+	end
 end
 -- }}}
 
@@ -419,7 +425,7 @@ function handlers.on_rpl_welcome(from)
         connecting = true,
         channels = {}
     }
-	
+
 	local mt = {
 		__index = function(self, key)
 			return self[key:lower()]
