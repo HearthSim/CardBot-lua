@@ -1,6 +1,3 @@
-[submodule "hs-data"]
-	path = hs-data
-	url = https://github.com/HearthSim/hs-data
 [submodule "SLAXML"]
 	path = SLAXML
 	url = https://github.com/Phrogz/SLAXML.git
