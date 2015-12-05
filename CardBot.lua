@@ -370,6 +370,72 @@ GameTag.TAG_AI_MUST_PLAY = GameTag.AI_MUST_PLAY
 GameTag.OVERKILL = 380
 -- Add Deleted Tags
 GameTag.DIVINE_SHIELD_READY = 314
+local PlayReqTag = {
+	REQ_MINION_TARGET = 1,
+	REQ_FRIENDLY_TARGET = 2,
+	REQ_ENEMY_TARGET = 3,
+	REQ_DAMAGED_TARGET = 4,
+	REQ_ENCHANTED_TARGET = 5,
+	REQ_FROZEN_TARGET = 6,
+	REQ_CHARGE_TARGET = 7,
+	REQ_TARGET_MAX_ATTACK = 8,
+	REQ_NONSELF_TARGET = 9,
+	REQ_TARGET_WITH_RACE = 10,
+	REQ_TARGET_TO_PLAY = 11,
+	REQ_NUM_MINION_SLOTS = 12,
+	REQ_WEAPON_EQUIPPED = 13,
+	REQ_ENOUGH_MANA = 14,
+	REQ_YOUR_TURN = 15,
+	REQ_NONSTEALTH_ENEMY_TARGET = 16,
+	REQ_HERO_TARGET = 17,
+	REQ_SECRET_CAP = 18,
+	REQ_MINION_CAP_IF_TARGET_AVAILABLE = 19,
+	REQ_MINION_CAP = 20,
+	REQ_TARGET_ATTACKED_THIS_TURN = 21,
+	REQ_TARGET_IF_AVAILABLE = 22,
+	REQ_MINIMUM_ENEMY_MINIONS = 23,
+	REQ_TARGET_FOR_COMBO = 24,
+	REQ_NOT_EXHAUSTED_ACTIVATE = 25,
+	REQ_UNIQUE_SECRET = 26,
+	REQ_TARGET_TAUNTER = 27,
+	REQ_CAN_BE_ATTACKED = 28,
+	REQ_ACTION_PWR_IS_MASTER_PWR = 29,
+	REQ_TARGET_MAGNET = 30,
+	REQ_ATTACK_GREATER_THAN_0 = 31,
+	REQ_ATTACKER_NOT_FROZEN = 32,
+	REQ_HERO_OR_MINION_TARGET = 33,
+	REQ_CAN_BE_TARGETED_BY_SPELLS = 34,
+	REQ_SUBCARD_IS_PLAYABLE = 35,
+	REQ_TARGET_FOR_NO_COMBO = 36,
+	REQ_NOT_MINION_JUST_PLAYED = 37,
+	REQ_NOT_EXHAUSTED_HERO_POWER = 38,
+	REQ_CAN_BE_TARGETED_BY_OPPONENTS = 39,
+	REQ_ATTACKER_CAN_ATTACK = 40,
+	REQ_TARGET_MIN_ATTACK = 41,
+	REQ_CAN_BE_TARGETED_BY_HERO_POWERS = 42,
+	REQ_ENEMY_TARGET_NOT_IMMUNE = 43,
+	REQ_ENTIRE_ENTOURAGE_NOT_IN_PLAY = 44,
+	REQ_MINIMUM_TOTAL_MINIONS = 45,
+	REQ_MUST_TARGET_TAUNTER = 46,
+	REQ_UNDAMAGED_TARGET = 47,
+	REQ_CAN_BE_TARGETED_BY_BATTLECRIES = 48,
+	REQ_STEADY_SHOT = 49,
+	REQ_MINION_OR_ENEMY_HERO = 50,
+	REQ_TARGET_IF_AVAILABLE_AND_DRAGON_IN_HAND = 51,
+	REQ_LEGENDARY_TARGET = 52,
+	REQ_FRIENDLY_MINION_DIED_THIS_TURN = 53,
+	REQ_FRIENDLY_MINION_DIED_THIS_GAME = 54,
+	REQ_ENEMY_WEAPON_EQUIPPED = 55,
+	REQ_TARGET_IF_AVAILABLE_AND_MINIMUM_FRIENDLY_MINIONS = 56,
+	REQ_TARGET_WITH_BATTLECRY = 57,
+	REQ_TARGET_WITH_DEATHRATTLE = 58,
+	REQ_DRAG_TO_PLAY = 59,
+}
+-- Add reverse lookup
+local PlayReqTagReverse = {}
+for k, v in pairs(PlayReqTag) do
+	PlayReqTagReverse[v] = k
+end
 
 local Locale = {
 	[0] = "enUS",
@@ -745,7 +811,44 @@ local function TryTagCommand(command, outputTarget)
 			end
 			OutputText(output, outputTarget)
 		else
-			OutputText("No tag found for \""..tag.."\".", outputTarget)
+			OutputText("No Tag found for \""..tag.."\".", outputTarget)
+		end
+
+		return true
+	end
+
+	return false
+end
+
+local function TryPlayReqCommand(command, outputTarget)
+	local start, _, req = command:find("!playreq%s+(%S+)")
+	if req and start == 1 then
+		-- Is req a number?
+		local isnumber = tonumber(req)
+		if isnumber and PlayReqTagReverse[isnumber] then
+			OutputText("PlayReq: "..PlayReqTagReverse[isnumber].." = "..req, outputTarget)
+			return true
+		end
+
+		-- Is req found?
+		local lowerReq = req:lower()
+		local result = {}
+		for k, v in pairs(PlayReqTag) do
+			if k:lower():find(lowerReq) then
+				result[#result + 1] = k
+			end
+		end
+
+		if #result > 0 then
+			local output = "PlayReq: "..result[1].." = "..PlayReqTag[result[1]]
+			if #result > 1 then
+				for i = 2, #result do
+					output = output..", "..result[i].." = "..PlayReqTag[result[i]]
+				end
+			end
+			OutputText(output, outputTarget)
+		else
+			OutputText("No PlayReq found for \""..req.."\".", outputTarget)
 		end
 
 		return true
@@ -939,6 +1042,9 @@ local function on_channel_msg(chan, from, msg)
 		if not foundCommand then
 			foundCommand = TryTagCommand(msg, chan.name)
 		end
+		if not foundCommand then
+			foundCommand = TryPlayReqCommand(msg, chan.name)
+		end
 	end
 end
 irc.register_callback("channel_msg", on_channel_msg)
@@ -965,6 +1071,9 @@ local function on_private_msg(from, msg)
 	end
 	if not foundCommand then
 		foundCommand = TryTagCommand(msg, from)
+	end
+	if not foundCommand then
+		foundCommand = TryPlayReqCommand(msg, from)
 	end
 end
 irc.register_callback("private_msg", on_private_msg)
@@ -1058,6 +1167,8 @@ TryTagCommand("!tag 194")
 TryTagCommand("!tag 197")
 TryTagCommand("!tag 197 198")
 TryTagCommand("!tag a")
+TryPlayReqCommand("!playreq 5")
+TryPlayReqCommand("!playreq enemy")
 ]]
 --[[
 TryBuffCommand("!buff humility")
