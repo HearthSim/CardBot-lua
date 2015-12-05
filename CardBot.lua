@@ -963,6 +963,9 @@ local function on_private_msg(from, msg)
 	if not foundCommand then
 		foundCommand = TryBuffCommand(msg, from)
 	end
+	if not foundCommand then
+		foundCommand = TryTagCommand(msg, from)
+	end
 end
 irc.register_callback("private_msg", on_private_msg)
 
