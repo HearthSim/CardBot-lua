@@ -77,6 +77,7 @@ local CardRarity =
 	[3] = "12", -- Rare
 	[4] = "06", -- Epic
 	[5] = "07", -- Legendary
+	--[6] = "UNKNOWN_6",
 }
 local CardRace =
 {
@@ -328,6 +329,7 @@ local GameTag = {
 	ELECTRIC_CHARGE_LEVEL = 420,
 	HEAVILY_ARMORED = 421,
 	DONT_SHOW_IMMUNE = 422,
+	HISTORY_PROXY_NO_BIG_CARD = 427,
 
 	-- Only in card definitions
 	Collectible = 321,
@@ -345,6 +347,7 @@ local GameTag = {
 	CardTextInPlay = 252,
 	TARGETING_ARROW_TEXT = 325,
 	ARTISTNAME = 342,
+	LocalizationNotes = 344,
 	FLAVORTEXT = 351,
 	HOW_TO_EARN = 364,
 	HOW_TO_EARN_GOLDEN = 365,
