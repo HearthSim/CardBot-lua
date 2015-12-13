@@ -696,8 +696,9 @@ local function FindCard(text, cards, cardsDict)
 end
 
 local OutputText -- Defined later, function uses "irc" local defined later
+local TryCardCommand, TryBuffCommand, TryTagCommand
 
-local function TryCardCommand(command, outputTarget)
+TryCardCommand = function(command, outputTarget)
 	local start, _, index, args = command:find("!card(%d*) (.*)")
 	if index and args and start == 1 then
 		local showCount = false
@@ -729,7 +730,8 @@ local function TryCardCommand(command, outputTarget)
 					OutputText("Some error occured: "..(cardText or ""), outputTarget)
 				end
 			else
-				OutputText("No card found for \""..args.."\".", outputTarget)
+				--OutputText("No card found for \""..args.."\".", outputTarget)
+				return TryBuffCommand("!buff"..index.." "..args, outputTarget)
 			end
 		else
 			OutputText("Some error occured: "..(cards or ""), outputTarget)
@@ -740,7 +742,7 @@ local function TryCardCommand(command, outputTarget)
 	return false
 end
 
-local function TryBuffCommand(command, outputTarget)
+TryBuffCommand = function(command, outputTarget)
 	local start, _, index, args = command:find("!buff(%d*) (.*)")
 	if index and args and start == 1 then
 		local showCount = false
@@ -783,7 +785,7 @@ local function TryBuffCommand(command, outputTarget)
 	return false
 end
 
-local function TryTagCommand(command, outputTarget)
+TryTagCommand = function(command, outputTarget)
 	local start, _, tag = command:find("!tag%s+(%S+)")
 	if tag and start == 1 then
 		-- Is tag a number?
