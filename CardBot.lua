@@ -534,6 +534,7 @@ for _, tEntity in pairs(doc.root.kids) do
 			newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?b>", "")
 			newCard.CardTextInHand = newCard.CardTextInHand:gsub("</?i>", "")
 			newCard.CardTextInHand = newCard.CardTextInHand:gsub("%$(%d+)", "%1")
+			newCard.CardTextInHand = newCard.CardTextInHand:gsub("#(%d+)", "%1")
 			newCard.CardTextInHand = newCard.CardTextInHand:gsub("\n", " ")
 		else
 			newCard.CardTextInHand = ""
@@ -543,6 +544,7 @@ for _, tEntity in pairs(doc.root.kids) do
 			newCard.FlavorText = newCard.FlavorText:gsub("</?b>", "")
 			newCard.FlavorText = newCard.FlavorText:gsub("</?i>", "")
 			newCard.FlavorText = newCard.FlavorText:gsub("%$(%d+)", "%1")
+			newCard.FlavorText = newCard.FlavorText:gsub("#(%d+)", "%1")
 			newCard.FlavorText = newCard.FlavorText:gsub("\n", " ")
 		end
 		-- Store lowercase name
