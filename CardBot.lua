@@ -585,7 +585,7 @@ for _, tEntity in pairs(doc.root.kids) do
 end
 
 -- Sort the cards so that results are returned in this order
-table.sort(cards, function(a, b)
+local sortFunc = function(a, b)
 	 -- Sort by Collectible
 	if a.Collectible == b.Collectible then
 		-- Then by Rarity
@@ -606,7 +606,17 @@ table.sort(cards, function(a, b)
 	else
 		return a.Collectible
 	end
-end)
+end
+-- Sort data tables
+table.sort(cards, sortFunc)
+table.sort(buffs, sortFunc)
+for cardName, cardTable in pairs(cardsDict) do
+	table.sort(cardTable, sortFunc)
+end
+for buffName, buffTable in pairs(buffsDict) do
+	table.sort(buffTable, sortFunc)
+end
+
 
 local function trim(s)
 	return s:match("^%s*(.*%S)") or ""
