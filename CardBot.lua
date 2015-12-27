@@ -1,5 +1,10 @@
 #!/usr/bin/lua
 
+local CARDBOT_IRC_CHANNEL = os.getenv("CARDBOT_IRC_CHANNEL") or "#hearthsim"
+CARDBOT_IRC_CHANNEL = CARDBOT_IRC_CHANNEL:lower()
+local CARDBOT_IRC_NICK = os.getenv("CARDBOT_IRC_NICK") or "CardBot"
+local CARDBOT_IRC_SERVER = os.getenv("CARDBOT_IRC_SERVER") or "irc.freenode.net"
+
 -------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------
 -- Data
@@ -897,8 +902,8 @@ local function print_state()
 end
 
 local function on_connect()
-	print("Joining channel #hearthsim...")
-	irc.join("#hearthsim")
+	print("Joining channel "..CARDBOT_IRC_CHANNEL.."...")
+	irc.join(CARDBOT_IRC_CHANNEL)
 end
 irc.register_callback("connect", on_connect)
 
@@ -1048,7 +1053,7 @@ local function on_channel_msg(chan, from, msg)
 	end
 	]]
 
-	if chan.name:lower() == "#hearthsim" then
+	if chan.name:lower() == CARDBOT_IRC_CHANNEL then
 		local foundCommand = TryCardCommand(msg, chan.name)
 		if not foundCommand then
 			foundCommand = TryBuffCommand(msg, chan.name)
@@ -1139,7 +1144,7 @@ OutputText = function(text, outputTarget)
 		irc.say(outputTarget, text)
 	else
 		-- Approximation
-		text = text:sub(1, irc.constants.IRC_MAX_MSG - 2 - #"PRIVMSG #hearthsim :")
+		text = text:sub(1, irc.constants.IRC_MAX_MSG - 2 - #"PRIVMSG  :" - #CARDBOT_IRC_CHANNEL)
 		print(text)
 	end
 end
@@ -1149,10 +1154,10 @@ end
 
 -- Connect to IRC
 irc.connect({
-	network = "irc.freenode.net",
-	nick = "CardBot",
-	username = "CardBot",
-	realname = "CardBot",
+	network = CARDBOT_IRC_SERVER,
+	nick = CARDBOT_IRC_NICK,
+	username = CARDBOT_IRC_NICK,
+	realname = CARDBOT_IRC_NICK,
 })
 
 
