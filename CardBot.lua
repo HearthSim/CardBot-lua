@@ -508,6 +508,7 @@ local tagIDsToRead2 =
 }
 
 -- Parse XML document
+local build = doc.root.attr.build
 for _, tEntity in pairs(doc.root.kids) do
 	if tEntity.type == "element" then
 		--print("==== " .. tEntity.attr.CardID .. " ====")
@@ -876,6 +877,15 @@ local function TryPlayReqCommand(command, outputTarget)
 	return false
 end
 
+local function TryBuildCommand(command, outputTarget)
+	local start = command:find("!build%s-")
+	if start == 1 then
+		OutputText("CardDefs.xml build: "..build, outputTarget)
+		return true
+	end
+
+	return false
+end
 
 -------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------
@@ -1064,6 +1074,9 @@ local function on_channel_msg(chan, from, msg)
 		if not foundCommand then
 			foundCommand = TryPlayReqCommand(msg, chan.name)
 		end
+		if not foundCommand then
+			foundCommand = TryBuildCommand(msg, chan.name)
+		end
 	end
 end
 irc.register_callback("channel_msg", on_channel_msg)
@@ -1093,6 +1106,9 @@ local function on_private_msg(from, msg)
 	end
 	if not foundCommand then
 		foundCommand = TryPlayReqCommand(msg, from)
+	end
+	if not foundCommand then
+		foundCommand = TryBuildCommand(msg, from)
 	end
 end
 irc.register_callback("private_msg", on_private_msg)
